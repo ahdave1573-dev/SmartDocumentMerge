@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <h1 class="hero-title">Every tool you need to <span class="gradient-text">master PDFs</span></h1>
+      <p class="hero-subtitle">SmartMerge provides all the essential tools to work with PDF, Word, and Images. Fast,
+        secure, and 100% free.</p>
+    </div>
+  </div>
+</section>
+
+<section class="tool-grid-section">
+  <div class="container">
+    <div class="tool-grid">
+      {% for t in tools %}
+      <a href="{{ url_for('tool_page', tool_id=t.id) }}" class="tool-card">
+        <div class="tool-icon-wrapper" style="background: {{ t.bg }}">
+          <span class="tool-icon">{{ t.icon }}</span>
+        </div>
+        <h3 class="tool-title">{{ t.title }}</h3>
+        <p class="tool-desc">{{ t.desc }}</p>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}
