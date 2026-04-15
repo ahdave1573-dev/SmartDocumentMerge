@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tool.title }} — SmartMerge{% endblock %}
+
+{% block content %}
+<div class="tool-header" style="background: {{ tool.bg }}">
+    <div class="container">
+        <div class="tool-header-content">
+            <span class="tool-header-icon">{{ tool.icon }}</span>
+            <h1 class="tool-header-title">{{ tool.title }}</h1>
+            <p class="tool-header-desc">{{ tool.desc }}</p>
+        </div>
+    </div>
+</div>
+
+<section class="tool-body">
+    <div class="container">
+        <div class="upload-box" id="dropZone">
+            <div class="upload-content">
+                <div class="upload-icon">📄</div>
+                <h2>Drag & Drop files here</h2>
+                <p>or click to browse from your computer</p>
+                <div class="upload-constraints">
+                    Supports: {{ tool.accept | upper }} • Max 100 MB
+                </div>
+                <button class="btn btn-primary btn-lg" id="browseBtn">Select Files</button>
+                <input type="file" id="fileInput" hidden {% if tool.multiple %}multiple{% endif %}
+                    accept="{{ tool.accept }}">
+            </div>
+        </div>
+
+        <div id="fileListWrapper" class="hidden">
+            <div class="section-header">
+                <h3>Files in Queue</h3>
+                <button class="btn btn-ghost btn-sm" id="clearBtn">Clear All</button>
+            </div>
+            <div class="file-list" id="fileList"></div>
+
+            {% if tool.id == 'split' %}
+            <div class="tool-options card">
+                <h4>Split Options</h4>
+                <div class="options-grid">
+                    <div class="option-group">
+                        <label>Split Mode</label>
+                        <select id="splitMode" class="form-input">
+                            <option value="all">Every Page (Individual PDFs)</option>
+                            <option value="range">Specific Range (Select Pages)</option>
+                            <option value="fixed">Fixed Intervals (Every N Pages)</option>
+                        </select>
+                    </div>
+                    <div id="rangeInputGroup" class="option-group hidden">
+                        <label>Page Range / Interval</label>
+                        <input type="text" id="pageRange" class="form-input" placeholder="e.g. 1-3, 5, 8-10 or 2">
+                        <small>For range use 1-5. For fixed use a number 2.</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if tool.id == 'compress' %}
+            <div class="tool-options card">
+                <h4>Compression Options</h4>
+                <div class="options-grid">
+                    <div class="option-group">
+                        <label>Compression Level</label>
+                        <select id="compLevel" class="form-input">
+                            <option value="basic">Basic (High Quality, Good Size)</option>
+                            <option value="extreme">Extreme (Maximum Size Reduction)</option>
+                            <option value="nuclear">Nuclear (Minimum Size - No searchable text)</option>
+                        </select>
+                        <small>Extreme mode uses advanced document rebuilding for maximum reduction.</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if tool.id == 'pdf-to-image' %}
+            <div class="tool-options card">
+                <h4>Image Options</h4>
+                <div class="options-grid">
+                    <div class="option-group">
+                        <label>Output Format</label>
+                        <select id="imageFormat" class="form-input">
+                            <option value="jpg">JPEG (Smaller file size)</option>
+                            <option value="png">PNG (High quality)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if tool.id == 'secure' %}
+            <div class="tool-options card">
+                <h4>Security Options</h4>
+                <div class="options-grid">
+                    <div class="option-group">
+                        <label>Action</label>
+                        <select id="secureAction" class="form-input">
+                            <option value="protect">Protect with Password</option>
+                            <option value="unlock">Unlock Protected PDF</option>
+                        </select>
+                    </div>
+                    <div id="passwordGroup" class="option-group">
+                        <label>Password</label>
+                        <input type="password" id="pdfPassword" class="form-input" placeholder="Enter password">
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if tool.id == 'translate' %}
+            <div class="tool-options card">
+                <h4>Translation Options</h4>
+                <div class="options-grid">
+                    <div class="option-group">
+                        <label>Target Language</label>
+                        <select id="targetLang" class="form-input">
+                            <option value="en">English</option>
+                            <option value="hi">Hindi (हिन्दी)</option>
+                            <option value="gu">Gujarati (ગુજરાતી)</option>
+                            <option value="es">Spanish (Español)</option>
+                            <option value="fr">French (Français)</option>
+                            <option value="de">German (Deutsch)</option>
+                            <option value="ja">Japanese (日本語)</option>
+                            <option value="zh-cn">Chinese (Simplified)</option>
+                        </select>
+                        <small>Translation is powered by Google Translate.</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="tool-options card">
+                <h4>General Options</h4>
+                <div class="options-grid">
+                    <div class="option-group">
+                        <label>Custom Filename (Optional)</label>
+                        <input type="text" id="customFilename" class="form-input" placeholder="e.g. my_compressed_file">
+                        <small>Suffixes like .pdf will be added automatically.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-actions">
+                <button class="btn btn-primary btn-xl" id="processBtn">
+                    {{ tool.icon }} {{ tool.title }}
+                </button>
+            </div>
+        </div>
+
+        <div id="resultBox" class="hidden">
+            <div class="result-card card">
+                <div class="success-icon">✅</div>
+                <h2>Files Processed Successfully!</h2>
+                <div id="downloadLinks" class="download-links"></div>
+                <div class="result-actions">
+                    <button class="btn btn-secondary" onclick="location.reload()">Process Another File</button>
+                    <a href="{{ url_for('index') }}" class="btn btn-ghost">Back to Tools</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="loaderBox" class="hidden">
+            <div class="loader-content">
+                <div class="spinner"></div>
+                <h2>Processing Documents...</h2>
+                <p>This may take a few seconds depending on the file size.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const TOOL_ID = "{{ tool.id }}";
+    const TOOL_CONFIG = {{ tool | tojson }};
+</script>
+{% endblock %}
