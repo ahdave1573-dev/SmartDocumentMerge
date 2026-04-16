@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Downloads — SmartMerge</title>
+    <meta name="description" content="Download your merged PDF documents from SmartMerge." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body>
+
+    <!-- ── Navigation ── -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="brand-icon">⚡</span>
+            <span class="brand-text">SmartMerge</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('index') }}" class="nav-link">Home</a></li>
+            <li><a href="{{ url_for('upload') }}" class="nav-link">Upload</a></li>
+            <li><a href="{{ url_for('merge') }}" class="nav-link">Merge</a></li>
+            <li><a href="{{ url_for('download_page') }}" class="nav-link active">Download</a></li>
+        </ul>
+    </nav>
+
+    <main class="page-content">
+        <div class="page-header">
+            <h1 class="page-title">⬇️ Downloads</h1>
+            <p class="page-subtitle">All your merged PDF documents are available here for download.</p>
+        </div>
+
+        {% if merged_docs %}
+        <section class="section-card">
+            <div class="section-card-header">
+                <h2>📦 Merged Documents ({{ merged_docs|length }})</h2>
+            </div>
+            <div class="download-grid">
+                {% for merged in merged_docs %}
+                <div class="download-card">
+                    <div class="download-card-icon">📑</div>
+                    <div class="download-card-info">
+                        <div class="download-card-name" title="{{ merged.merged_name }}">
+                            {{ merged.merged_name }}
+                        </div>
+                        <div class="download-card-meta">
+                            <span>📏 {{ format_file_size(merged.size or 0) }}</span>
+                            <span>📅 {{ merged.created_at[:10] if merged.created_at else 'Unknown' }}</span>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('download_file', filename=merged.merged_name) }}"
+                        class="btn btn-primary btn-download" download title="Download {{ merged.merged_name }}">
+                        ⬇️ Download
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="section-card">
+            <div class="empty-state large-empty">
+                <div class="empty-icon">📭</div>
+                <h2>No Merged Documents Yet</h2>
+                <p>
+                    You haven't merged any documents yet. Upload files and merge them
+                    to see your downloads here.
+                </p>
+                <div class="empty-actions">
+                    <a href="{{ url_for('upload') }}" class="btn btn-primary">
+                        📤 Upload Files
+                    </a>
+                    <a href="{{ url_for('merge') }}" class="btn btn-secondary">
+                        🔀 Go to Merge
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Shortcut to upload/merge -->
+        <div class="shortcut-bar">
+            <a href="{{ url_for('upload') }}" class="btn btn-ghost">📤 Upload More Files</a>
+            <a href="{{ url_for('merge') }}" class="btn btn-ghost">🔀 Merge More Documents</a>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>Smart Document Merge System &copy; 2024 &mdash; Built with Flask &amp; Python</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>
