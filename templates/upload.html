@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload Documents — SmartMerge</title>
+  <meta name="description" content="Upload PDF, DOCX, and TXT documents to SmartMerge." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+  <!-- ── Navigation ── -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="brand-icon">⚡</span>
+      <span class="brand-text">SmartMerge</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="{{ url_for('index') }}" class="nav-link">Home</a></li>
+      <li><a href="{{ url_for('upload') }}" class="nav-link active">Upload</a></li>
+      <li><a href="{{ url_for('merge') }}" class="nav-link">Merge</a></li>
+      <li><a href="{{ url_for('download_page') }}" class="nav-link">Download</a></li>
+    </ul>
+  </nav>
+
+  <main class="page-content">
+    <div class="page-header">
+      <h1 class="page-title">📤 Upload Documents</h1>
+      <p class="page-subtitle">Drag & drop or browse to upload PDF, DOCX, and TXT files.</p>
+    </div>
+
+    <!-- ── Drop Zone ── -->
+    <div class="upload-container">
+      <div id="dropZone" class="drop-zone" role="button" tabindex="0"
+           aria-label="File drop zone — click or drag files here">
+        <div class="drop-zone-icon">☁️</div>
+        <div class="drop-zone-text">Drag & Drop files here</div>
+        <div class="drop-zone-subtext">or</div>
+        <label for="fileInput" class="btn btn-primary">Browse Files</label>
+        <input type="file" id="fileInput" name="documents" multiple
+               accept=".pdf,.docx,.txt" class="hidden-input" aria-label="File input" />
+        <div class="drop-zone-hint">Supports: PDF, DOCX, TXT &bull; Max 50 MB per file</div>
+      </div>
+
+      <!-- Upload progress list -->
+      <div id="uploadQueue" class="upload-queue hidden"></div>
+
+      <!-- Upload button -->
+      <div class="upload-actions">
+        <button id="uploadBtn" class="btn btn-primary btn-lg" disabled>
+          📤 Upload Selected Files
+        </button>
+        <button id="clearBtn" class="btn btn-ghost" disabled>Clear</button>
+      </div>
+
+      <!-- Toast notifications -->
+      <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+    </div>
+
+    <!-- ── Uploaded Files List ── -->
+    <section class="section-card">
+      <div class="section-card-header">
+        <h2>📂 Uploaded Files</h2>
+        <div class="header-actions">
+          <button id="convertAllBtn" class="btn btn-secondary" onclick="convertAll()">
+            🔄 Convert All to PDF
+          </button>
+          <button class="btn btn-ghost" onclick="refreshDocuments()">↻ Refresh</button>
+        </div>
+      </div>
+
+      <div id="documentsContainer">
+        {% if documents %}
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Filename</th>
+              <th>Type</th>
+              <th>Size</th>
+              <th>Status</th>
+              <th>Uploaded</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="docTableBody">
+            {% for doc in documents %}
+            <tr id="doc-row-{{ doc.id }}">
+              <td class="doc-name">{{ doc.original_name }}</td>
+              <td><span class="badge badge-{{ doc.file_type }}">{{ doc.file_type | upper }}</span></td>
+              <td>{{ format_file_size(doc.size or 0) }}</td>
+              <td>
+                <span class="status-badge status-{{ doc.status }}" id="status-{{ doc.id }}">
+                  {{ doc.status | capitalize }}
+                </span>
+              </td>
+              <td class="doc-date">{{ doc.uploaded_at[:10] if doc.uploaded_at else '—' }}</td>
+              <td class="doc-actions">
+                {% if doc.file_type != 'pdf' and doc.status != 'converted' %}
+                <button class="btn btn-xs btn-secondary"
+                        onclick="convertDocument({{ doc.id }}, this)">
+                  🔄 Convert
+                </button>
+                {% endif %}
+                <button class="btn btn-xs btn-danger"
+                        onclick="deleteDocument({{ doc.id }})">
+                  🗑️
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">📭</div>
+          <p>No documents uploaded yet. Upload some files above to get started!</p>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Smart Document Merge System &copy; 2024 &mdash; Built with Flask &amp; Python</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
